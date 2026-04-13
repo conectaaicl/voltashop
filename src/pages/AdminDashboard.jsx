@@ -202,7 +202,7 @@ const AdminDashboard = () => {
           <a onClick={()=>setActiveTab('ventas')} className={activeTab==='ventas'?'active':''}><ShoppingBag size={20}/> Ventas ({realOrders.length})</a>
           <a onClick={()=>setActiveTab('apariencia')} className={activeTab==='apariencia'?'active':''}><LayoutTemplate size={20}/> Apariencia</a>
           <a onClick={()=>setActiveTab('seo')} className={activeTab==='seo'?'active':''}><Search size={20}/> SEO / SEM</a>
-          <a onClick={()=>setActiveTab('saas')} className={activeTab==='saas'?'active':''}><Rocket size={20}/> SaaS & Landing</a>
+          <a onClick={()=>setActiveTab('saas')} className={activeTab==='saas'?'active':''}><Rocket size={20}/> Config & Redes</a>
           <div style={{marginTop: 'auto', paddingTop: '2rem'}}>
             <a onClick={handleLogout} style={{color: '#ff5a5f'}}><Lock size={20}/> Cerrar Sesión</a>
           </div>
@@ -544,8 +544,8 @@ const AdminDashboard = () => {
         {/* === TAB SAAS === */}
         {activeTab === 'saas' && saasConfig && (
           <div className="tab-pane">
-            <header className="admin-header"><h1>Gestión de Venta SaaS</h1></header>
-            <p style={{color: '#a0aec0', marginBottom: '2rem'}}>Modifica los textos de la landing page para vender el software.</p>
+            <header className="admin-header"><h1>Configuración de la Tienda</h1></header>
+            <p style={{color: '#a0aec0', marginBottom: '2rem'}}>Nombre, logo, colores, redes sociales y textos de la landing de venta.</p>
             
             <form className="admin-form full-form" onSubmit={async (e) => {
                 e.preventDefault();
@@ -634,7 +634,41 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <button type="submit" className="btn-primary" style={{marginTop: '2rem'}}>Guardar Ecosistema y Skins</button>
+              {/* --- CONTACTO & REDES SOCIALES --- */}
+              <div className="admin-section-divider"></div>
+              <h2 style={{marginTop: '1.5rem', marginBottom: '1rem'}}>📱 Contacto & Redes Sociales</h2>
+
+              <div className="form-row-admin">
+                <div className="form-group-admin">
+                  <label>Número WhatsApp (con código país, sin +)</label>
+                  <input type="text" placeholder="56912345678" value={saasConfig.whatsapp_number || ''} onChange={e => setSaasConfig({...saasConfig, whatsapp_number: e.target.value})} />
+                </div>
+                <div className="form-group-admin">
+                  <label>Color Acento (#hex)</label>
+                  <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                    <input type="color" value={saasConfig.accent_color || '#f7c948'} onChange={e => setSaasConfig({...saasConfig, accent_color: e.target.value})} style={{width:48, height:38, padding:2, border:'1px solid #2d3748', borderRadius:6, background:'#1a1c23', cursor:'pointer'}} />
+                    <input type="text" value={saasConfig.accent_color || '#f7c948'} onChange={e => setSaasConfig({...saasConfig, accent_color: e.target.value})} style={{flex:1}} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-row-admin">
+                <div className="form-group-admin">
+                  <label>Instagram URL</label>
+                  <input type="text" placeholder="https://instagram.com/tutienda" value={saasConfig.instagram_url || ''} onChange={e => setSaasConfig({...saasConfig, instagram_url: e.target.value})} />
+                </div>
+                <div className="form-group-admin">
+                  <label>Facebook URL</label>
+                  <input type="text" placeholder="https://facebook.com/tutienda" value={saasConfig.facebook_url || ''} onChange={e => setSaasConfig({...saasConfig, facebook_url: e.target.value})} />
+                </div>
+              </div>
+
+              <div className="form-group-admin">
+                <label>TikTok URL</label>
+                <input type="text" placeholder="https://tiktok.com/@tutienda" value={saasConfig.tiktok_url || ''} onChange={e => setSaasConfig({...saasConfig, tiktok_url: e.target.value})} />
+              </div>
+
+              <button type="submit" className="btn-primary" style={{marginTop: '2rem'}}>Guardar Configuración</button>
               <button type="button" className="btn-secondary" style={{marginLeft: '1rem'}} onClick={() => window.open('/saas', '_blank')}>Ver Landing en Vivo</button>
             </form>
           </div>

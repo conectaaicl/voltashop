@@ -1,10 +1,13 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
+import { useShop } from '../context/CartContext';
 import './WhatsAppBtn.css';
 
 const WhatsAppBtn = () => {
-  const whatsappNumber = "56912345678"; // Dummy LATAM number
-  const message = "Hola! Vengo de VoltaShop y quiero hacer una consulta sobre: ";
+  const { saasConfig } = useShop();
+  const whatsappNumber = saasConfig?.whatsapp_number || "56912345678";
+  const storeName = saasConfig?.store_name || "VoltaShop";
+  const message = `Hola! Vengo de ${storeName} y quiero hacer una consulta: `;
 
   return (
     <a 

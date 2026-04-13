@@ -130,6 +130,11 @@ class SaasConfigBase(BaseModel):
     store_name: str
     store_logo: str
     active_theme: int
+    whatsapp_number: str = "56912345678"
+    instagram_url: str = ""
+    facebook_url: str = ""
+    tiktok_url: str = ""
+    accent_color: str = "#f7c948"
 
 class SaasConfigResponse(SaasConfigBase):
     id: int

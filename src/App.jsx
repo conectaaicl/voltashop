@@ -14,7 +14,6 @@ import UserProfile from './pages/UserProfile';
 import SaaSLanding from './pages/SaaSLanding';
 import Footer from './components/Footer';
 import WhatsAppBtn from './components/WhatsAppBtn';
-import LiveNotification from './components/LiveNotification';
 import './styles/ThemeManager.css';
 
 function App() {
@@ -38,7 +37,6 @@ function App() {
         </main>
         <Footer />
         <WhatsAppBtn />
-        <LiveNotification />
       </BrowserRouter>
     </CartProvider>
   );

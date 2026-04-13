@@ -85,3 +85,10 @@ class SaasConfig(Base):
     store_name = Column(String, default="VoltaShop")
     store_logo = Column(String, default="https://img.icons8.com/clouds/100/shopping-cart.png")
     active_theme = Column(Integer, default=1)  # 1–5
+
+    # Contacto & Redes Sociales
+    whatsapp_number = Column(String, default="56912345678")
+    instagram_url = Column(String, default="")
+    facebook_url = Column(String, default="")
+    tiktok_url = Column(String, default="")
+    accent_color = Column(String, default="#f7c948")
