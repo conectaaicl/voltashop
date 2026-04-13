@@ -1,0 +1,327 @@
+:root {
+  --saas-primary: #1a1c23;
+  --saas-secondary: #272a38;
+  --saas-accent: #667eea;
+  --saas-accent-alt: #764ba2;
+  --saas-text: #f8fafc;
+  --saas-text-muted: #94a3b8;
+}
+
+.saas-landing {
+  background-color: var(--saas-primary);
+  color: var(--saas-text);
+  font-family: 'Outfit', sans-serif;
+  overflow-x: hidden;
+}
+
+/* HERO SECTION */
+.saas-hero {
+  position: relative;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8rem 0 4rem;
+  background: radial-gradient(circle at top, rgba(102, 126, 234, 0.15) 0%, transparent 60%);
+}
+
+.hero-content h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 1.5rem 0;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-content p {
+  font-size: 1.25rem;
+  color: var(--saas-text-muted);
+  max-width: 700px;
+  margin: 0 auto 2.5rem;
+}
+
+.hero-btns {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.badge-modern {
+    background: rgba(102, 126, 234, 0.1);
+    color: var(--saas-accent);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+/* MOCKUP SECTION */
+.saas-preview {
+    margin: -5rem auto 6rem;
+}
+
+.dashboard-mockup {
+    background: var(--saas-secondary);
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255,255,255,0.05);
+    overflow: hidden;
+}
+
+.mockup-header {
+    background: #111;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mockup-header .dots {
+    display: flex;
+    gap: 6px;
+}
+
+.mockup-header .dots span {
+    width: 8px;
+    height: 8px;
+    background: #444;
+    border-radius: 50%;
+}
+
+.mockup-header .url-bar {
+    flex: 1;
+    background: #222;
+    border-radius: 4px;
+    padding: 0.2rem 1rem;
+    color: #888;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.dashboard-mockup img {
+    width: 100%;
+    display: block;
+    opacity: 0.9;
+}
+
+/* FEATURES SECTION */
+.saas-features {
+    padding-bottom: 8rem;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-title h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-title p {
+    color: var(--saas-text-muted);
+    font-size: 1.1rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card-premium {
+    background: rgba(255,255,255,0.03);
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s;
+}
+
+.feature-card-premium:hover {
+    background: rgba(255,255,255,0.05);
+    transform: translateY(-5px);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.feature-icon-wrapper {
+    color: var(--saas-accent);
+    margin-bottom: 1.5rem;
+}
+
+.feature-card-premium h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.feature-card-premium p {
+  color: var(--saas-text-muted);
+  line-height: 1.6;
+}
+
+/* PRICING SECTION */
+.saas-pricing {
+    padding-bottom: 10rem;
+}
+
+.pricing-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.pricing-card {
+    background: var(--saas-secondary);
+    padding: 3rem;
+    border-radius: 24px;
+    width: 380px;
+    border: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+    position: relative;
+    transition: transform 0.3s;
+}
+
+.pricing-card:hover {
+    transform: scale(1.02);
+}
+
+.pricing-card.featured {
+    border: 2px solid var(--saas-accent);
+    background: linear-gradient(180deg, var(--saas-secondary) 0%, rgba(102, 126, 234, 0.05) 100%);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--saas-accent);
+    color: white;
+    padding: 0.4rem 1.2rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.pricing-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+  color: var(--saas-text-muted);
+}
+
+.pricing-card .price {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 2.5rem;
+  color: white;
+}
+
+.pricing-card .price span {
+  font-size: 1rem;
+  color: var(--saas-text-muted);
+  font-weight: 400;
+}
+
+.pricing-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 3rem 0;
+  text-align: left;
+}
+
+.pricing-card li {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #8f9ba8;
+}
+
+.pricing-card li.disabled {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+/* BUTTONS SAAS */
+.btn-saas-primary {
+  background: var(--saas-accent);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s;
+}
+
+.btn-saas-primary:hover {
+  background: var(--saas-accent-alt);
+  box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+}
+
+.btn-saas-outline {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-saas-outline:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.2);
+}
+
+.pricing-card .btn-saas-primary,
+.pricing-card .btn-saas-outline {
+    width: 100%;
+    justify-content: center;
+}
+
+/* FOOTER */
+.saas-footer {
+    padding: 5rem 0;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+}
+
+.footer-brand {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.footer-content p {
+    color: var(--saas-text-muted);
+    font-size: 0.9rem;
+}
+
+.loading-saas {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--saas-accent);
+    background: var(--saas-primary);
+}

@@ -1,0 +1,120 @@
+/* 
+  SISTEMA DE DISEÑOS (SKINS) - VoltaShop 
+  Toda la aplicación obedece a estas variables para cambiar su apariencia.
+*/
+
+:root {
+  /* TEMA 1: VOLTACLASIC (Estilo Mercado Libre) */
+  --theme-1-primary: #fff159;
+  --theme-1-secondary: #3483fa;
+  --theme-1-bg: #ebebeb;
+  --theme-1-text: #333;
+  --theme-1-card: #ffffff;
+  --theme-1-accent: #00a650;
+  --theme-1-radius: 6px;
+  --theme-1-font: 'Inter', sans-serif;
+
+  /* TEMA 2: MINIMALIST DARK (Lujo y Elegancia) */
+  --theme-2-primary: #d4af37; /* Dorado */
+  --theme-2-secondary: #1a1a1a;
+  --theme-2-bg: #0d0d0d;
+  --theme-2-text: #f5f5f5;
+  --theme-2-card: #181818;
+  --theme-2-accent: #c5a028;
+  --theme-2-radius: 0px; /* Bordes rectos para minimalismo */
+  --theme-2-font: 'Outfit', sans-serif;
+
+  /* TEMA 3: BOUTIQUE ELEGANT (Soft & Chic) */
+  --theme-3-primary: #f8edeb;
+  --theme-3-secondary: #d4a373;
+  --theme-3-bg: #fffcf2;
+  --theme-3-text: #403d39;
+  --theme-3-card: #ffffff;
+  --theme-3-accent: #faedcd;
+  --theme-3-radius: 20px; /* Bordes muy curvos */
+  --theme-3-font: 'Playfair Display', serif;
+
+  /* TEMA 4: CYBERTECH (Gaming & Neon) */
+  --theme-4-primary: #00f2ff;
+  --theme-4-secondary: #7000ff;
+  --theme-4-bg: #0a0b1e;
+  --theme-4-text: #e0e0ff;
+  --theme-4-card: #161b33;
+  --theme-4-accent: #ff00c8;
+  --theme-4-radius: 4px;
+  --theme-4-font: 'JetBrains Mono', monospace;
+
+  /* TEMA 5: MODERN GLASS (Glassmorphism) */
+  --theme-5-primary: rgba(255, 255, 255, 0.2);
+  --theme-5-secondary: #6366f1;
+  --theme-5-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --theme-5-text: #ffffff;
+  --theme-5-card: rgba(255, 255, 255, 0.1);
+  --theme-5-accent: #c084fc;
+  --theme-5-radius: 16px;
+  --theme-5-font: 'Outfit', sans-serif;
+}
+
+/* Aplicación Dinámica según el tema activo */
+body[data-theme="1"] {
+  --primary: var(--theme-1-primary);
+  --secondary: var(--theme-1-secondary);
+  --bg: var(--theme-1-bg);
+  --text: var(--theme-1-text);
+  --card: var(--theme-1-card);
+  --accent: var(--theme-1-accent);
+  --radius: var(--theme-1-radius);
+  font-family: var(--theme-1-font);
+}
+
+body[data-theme="2"] {
+  --primary: var(--theme-2-primary);
+  --secondary: var(--theme-2-secondary);
+  --bg: var(--theme-2-bg);
+  --text: var(--theme-2-text);
+  --card: var(--theme-2-card);
+  --accent: var(--theme-2-accent);
+  --radius: var(--theme-2-radius);
+  font-family: var(--theme-2-font);
+}
+
+body[data-theme="3"] {
+  --primary: var(--theme-3-primary);
+  --secondary: var(--theme-3-secondary);
+  --bg: var(--theme-3-bg);
+  --text: var(--theme-3-text);
+  --card: var(--theme-3-card);
+  --accent: var(--theme-3-accent);
+  --radius: var(--theme-3-radius);
+  font-family: var(--theme-3-font);
+}
+
+body[data-theme="4"] {
+  --primary: var(--theme-4-primary);
+  --secondary: var(--theme-4-secondary);
+  --bg: var(--theme-4-bg);
+  --text: var(--theme-4-text);
+  --card: var(--theme-4-card);
+  --accent: var(--theme-4-accent);
+  --radius: var(--theme-4-radius);
+  font-family: var(--theme-4-font);
+}
+
+body[data-theme="5"] {
+  --primary: var(--theme-5-primary);
+  --secondary: var(--theme-5-secondary);
+  --bg: var(--theme-5-bg);
+  --text: var(--theme-5-text);
+  --card: var(--theme-5-card);
+  --accent: var(--theme-5-accent);
+  --radius: var(--theme-5-radius);
+  font-family: var(--theme-5-font);
+}
+
+/* Glassmorphism Effect para Tema 5 */
+body[data-theme="5"] .product-card, 
+body[data-theme="5"] .navbar, 
+body[data-theme="5"] .admin-sidebar {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+}

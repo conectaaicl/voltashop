@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. Base de Datos Postgres
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-voltadmin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-supersecreto2026}
+      POSTGRES_DB: ${DB_NAME:-voltashop_prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Backend FastAPI
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-voltadmin}:${DB_PASSWORD:-supersecreto2026}@db/${DB_NAME:-voltashop_prod}
+      SECRET_KEY: ${SECRET_KEY}
+      CONECTAAI_API_KEY: ${CONECTAAI_API_KEY}
+      CONECTAAI_API_URL: ${CONECTAAI_API_URL:-https://mail.conectaai.cl/api/send}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      FRONTEND_URL: ${FRONTEND_URL:-https://volta.conectaai.cl}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://volta.conectaai.cl}
+      MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-false}
+
+  # 3. Frontend React + Nginx (sirve static + proxy /api/ al backend)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:3008:80"
+
+volumes:
+  postgres_data:

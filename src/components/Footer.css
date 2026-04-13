@@ -1,0 +1,143 @@
+.footer-container {
+  background-color: white;
+  border-top: 1px solid var(--border-color);
+  margin-top: 4rem;
+  padding-top: 3rem;
+  color: var(--text-dark);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.footer-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: var(--text-dark);
+}
+
+.footer-col p {
+  color: var(--text-light);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.footer-col ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footer-col a {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.footer-col a:hover {
+  color: var(--accent);
+}
+
+.trust-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 1.5rem;
+}
+
+.payment-logos {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.payment-logos img {
+  height: 24px;
+  object-fit: contain;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.payment-logos img:hover {
+  opacity: 1;
+}
+
+.social-icons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: var(--bg-color);
+  color: var(--text-dark);
+  transition: all 0.3s ease;
+}
+
+.social-link.instagram:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: white;
+  transform: translateY(-3px);
+}
+
+.social-link.facebook:hover {
+  background: #1877f2;
+  color: white;
+  transform: translateY(-3px);
+}
+
+.social-link.twitter:hover {
+  background: #1da1f2;
+  color: white;
+  transform: translateY(-3px);
+}
+
+.live-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 166, 80, 0.1);
+  color: #00a650;
+  padding: 0.6rem 1rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #00a650;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-light);
+  font-size: 0.85rem;
+  background-color: #f7f7f7;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 166, 80, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(0, 166, 80, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 166, 80, 0); }
+}

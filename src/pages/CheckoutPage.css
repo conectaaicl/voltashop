@@ -1,0 +1,126 @@
+.checkout-page {
+  padding-top: 2rem;
+  max-width: 900px !important;
+}
+
+.checkout-content {
+  display: flex;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.payment-form {
+  flex: 2;
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.payment-form h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lock-icon {
+  color: var(--success);
+}
+
+.payment-subtitle {
+  color: var(--text-light);
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(52, 131, 250, 0.2);
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.pay-btn {
+  width: 100%;
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.checkout-summary {
+  flex: 1;
+  background: #f7f9fa;
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mp-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+
+.checkout-summary p {
+  color: var(--text-light);
+  font-size: 0.85rem;
+  margin-top: 1rem;
+}
+
+.checkout-success {
+  text-align: center;
+  padding: 6rem 0;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-top: 2rem;
+}
+
+.success-icon {
+  margin-bottom: 1.5rem;
+}
+
+.checkout-success h2 {
+  font-size: 2rem;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.redirect-text {
+  color: var(--text-light);
+  margin-top: 2rem;
+  font-size: 0.9rem;
+}
