@@ -23,6 +23,7 @@ class Product(Base):
     stock = Column(Integer)
     freeShipping = Column(Boolean, default=False)
     description = Column(String, nullable=True)
+    images = Column(String, nullable=True)  # JSON-encoded list of URLs
 
     reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
 
@@ -92,3 +93,15 @@ class SaasConfig(Base):
     facebook_url = Column(String, default="")
     tiktok_url = Column(String, default="")
     accent_color = Column(String, default="#f7c948")
+    page_visits = Column(Integer, default=0)
+
+    # Configuracion de Pagos
+    mp_access_token = Column(String, nullable=True)
+    transfer_enabled = Column(Boolean, default=False)
+    bank_name = Column(String, nullable=True)
+    bank_account_type = Column(String, nullable=True)
+    bank_account_number = Column(String, nullable=True)
+    bank_holder_name = Column(String, nullable=True)
+    bank_holder_rut = Column(String, nullable=True)
+    bank_email = Column(String, nullable=True)
+    transfer_instructions = Column(String, nullable=True)

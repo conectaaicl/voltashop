@@ -5,12 +5,21 @@ import './SaaSLanding.css';
 
 const SaaSLanding = () => {
     const [config, setConfig] = useState(null);
+    const [visits, setVisits] = useState(null);
 
     useEffect(() => {
         fetch('/api/landing')
             .then(res => res.json())
             .then(data => setConfig(data))
             .catch(err => console.error("Error cargando landing:", err));
+
+        // Track and get visit count
+        fetch('/api/visits', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => setVisits(data.visits))
+            .catch(() => {
+                fetch('/api/visits').then(r => r.json()).then(d => setVisits(d.visits)).catch(() => {});
+            });
     }, []);
 
     if (!config) return <div className="loading-saas">Cargando VoltaShop SaaS...</div>;
@@ -43,6 +52,12 @@ const SaaSLanding = () => {
                         </button>
                         <button className="btn-saas-outline">Ver Demo en Vivo</button>
                     </div>
+                    {visits !== null && (
+                        <div className="visit-counter-badge">
+                            <span className="visit-dot"></span>
+                            <span><strong>{visits.toLocaleString()}</strong> visitas totales a esta página</span>
+                        </div>
+                    )}
                 </motion.div>
                 
                 <div className="hero-gradient"></div>

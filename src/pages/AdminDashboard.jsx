@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useShop } from '../context/CartContext';
-import { Package, Plus, TrendingUp, DollarSign, Edit3, Image, LayoutTemplate, Search, ShoppingBag, Lock, Truck, Rocket } from 'lucide-react';
+import { Package, Plus, TrendingUp, DollarSign, Edit3, Image, LayoutTemplate, Search, ShoppingBag, Lock, Truck, Rocket, CreditCard, Building2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AdminLogin from './AdminLogin';
 import './AdminDashboard.css';
@@ -13,6 +13,8 @@ const data = [
 const AdminDashboard = () => {
   const { products, removeProduct, addProduct, bannerConfig, updateBanner, seoConfig, updateSeo } = useShop();
   const [activeTab, setActiveTab] = useState('resumen');
+  const [payConfig, setPayConfig] = useState({mp_access_token:'',transfer_enabled:false,bank_name:'',bank_account_type:'',bank_account_number:'',bank_holder_name:'',bank_holder_rut:'',bank_email:'',transfer_instructions:''});
+  const [payConfigMsg, setPayConfigMsg] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('admin_token'));
   const [realOrders, setRealOrders] = useState([]);
   const [saasConfig, setSaasConfig] = useState(null);
@@ -35,10 +37,13 @@ const AdminDashboard = () => {
   
   // States for products logic
   const [isAdding, setIsAdding] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: '', image: '', description: '', freeShipping: false });
+  const [addSuccess, setAddSuccess] = useState('');
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', stock: '', category: '', image: '', images: [], description: '', freeShipping: false });
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadPreview, setUploadPreview] = useState(null);
-  const [uploadType, setUploadType] = useState(null); // 'image' or 'video'
+  const [uploadType, setUploadType] = useState(null);
+  const [catL1, setCatL1] = useState(''); const [catL2, setCatL2] = useState(''); const [catL3, setCatL3] = useState('');
+  const [newCatL1, setNewCatL1] = useState(''); const [newCatL2, setNewCatL2] = useState(''); const [newCatL3, setNewCatL3] = useState('');
 
   // States for SEO/Banner Config logic
   const [bannerForm, setBannerForm] = useState(bannerConfig);
@@ -103,38 +108,56 @@ const AdminDashboard = () => {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
     setUploadingFile(true);
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      if (!res.ok) {
-        const err = await res.json();
-        alert(`❌ ${err.detail}`);
-        setUploadingFile(false);
-        return;
-      }
-      const data = await res.json();
-      setNewProduct(prev => ({ ...prev, image: data.url }));
-      setUploadPreview(data.url);
-      setUploadType(data.type);
-    } catch (err) {
-      alert('❌ Error al subir archivo');
+    const uploaded = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!res.ok) { const err = await res.json(); alert('Error: ' + err.detail); continue; }
+        const data = await res.json();
+        uploaded.push({ url: data.url, type: data.type });
+      } catch { alert('Error al subir archivo'); }
+    }
+    if (uploaded.length) {
+      setNewProduct(prev => {
+        const newImages = [...prev.images, ...uploaded];
+        return { ...prev, images: newImages, image: newImages[0]?.url || prev.image };
+      });
     }
     setUploadingFile(false);
+    e.target.value = '';
+  };
+
+  const removeMedia = (index) => {
+    setNewProduct(prev => {
+      const imgs = prev.images.filter((_, i) => i !== index);
+      return { ...prev, images: imgs, image: imgs[0]?.url || '' };
+    });
   };
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
-    await addProduct({ ...newProduct, price: parseFloat(newProduct.price), stock: parseInt(newProduct.stock) });
-    setIsAdding(false);
-    setNewProduct({ name: '', price: '', stock: '', category: '', image: '', description: '', freeShipping: false });
-    setUploadPreview(null);
-    setUploadType(null);
+    const imagesJson = JSON.stringify(newProduct.images.map(m => m.url));
+    const productData = {
+      ...newProduct,
+      price: parseFloat(newProduct.price),
+      stock: parseInt(newProduct.stock),
+      image: newProduct.images[0]?.url || newProduct.image,
+      images: imagesJson,
+    };
+    const result = await addProduct(productData);
+    if (result) {
+      setAddSuccess('Producto "' + newProduct.name + '" publicado correctamente');
+      setNewProduct({ name: '', price: '', stock: '', category: '', image: '', images: [], description: '', freeShipping: false });
+      setUploadPreview(null); setUploadType(null);
+      setCatL1(''); setCatL2(''); setCatL3('');
+      setNewCatL1(''); setNewCatL2(''); setNewCatL3('');
+      setTimeout(() => setAddSuccess(''), 5000);
+    }
   };
 
   const handleBannerSave = (e) => {
@@ -203,6 +226,7 @@ const AdminDashboard = () => {
           <a onClick={()=>setActiveTab('apariencia')} className={activeTab==='apariencia'?'active':''}><LayoutTemplate size={20}/> Apariencia</a>
           <a onClick={()=>setActiveTab('seo')} className={activeTab==='seo'?'active':''}><Search size={20}/> SEO / SEM</a>
           <a onClick={()=>setActiveTab('saas')} className={activeTab==='saas'?'active':''}><Rocket size={20}/> Config & Redes</a>
+          <a onClick={()=>{setActiveTab('pagos');const t=localStorage.getItem('admin_token');fetch('/api/config/payment',{headers:{Authorization:'Bearer '+t}}).then(r=>r.json()).then(d=>setPayConfig({mp_access_token:d.mp_access_token||'',transfer_enabled:d.transfer_enabled||false,bank_name:d.bank_name||'',bank_account_type:d.bank_account_type||'',bank_account_number:d.bank_account_number||'',bank_holder_name:d.bank_holder_name||'',bank_holder_rut:d.bank_holder_rut||'',bank_email:d.bank_email||'',transfer_instructions:d.transfer_instructions||''})).catch(()=>{});}} className={activeTab==='pagos'?'active':''}><CreditCard size={20}/> Pagos</a>
           <div style={{marginTop: 'auto', paddingTop: '2rem'}}>
             <a onClick={handleLogout} style={{color: '#ff5a5f'}}><Lock size={20}/> Cerrar Sesión</a>
           </div>
@@ -250,11 +274,59 @@ const AdminDashboard = () => {
 
             {isAdding && (
               <form className="admin-form" onSubmit={handleAddSubmit}>
-                <h3>Agregar Nuevo Producto</h3>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'0.5rem'}}>
+                  <h3 style={{margin:0}}>Agregar Nuevo Producto</h3>
+                  <button type="button" onClick={()=>{setIsAdding(false);setNewProduct({name:'',price:'',stock:'',category:'',image:'',images:[],description:'',freeShipping:false});setCatL1('');setCatL2('');setCatL3('');}} style={{background:'none',border:'1px solid #272a38',color:'#a0aec0',padding:'4px 12px',borderRadius:'6px',cursor:'pointer',fontSize:'0.82rem'}}>Cerrar</button>
+                </div>
                 <div className="form-grid">
                   <input type="text" placeholder="Nombre del Producto" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
                   <input type="number" placeholder="Precio ($)" required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} />
-                  <input type="text" placeholder="Categoría (ej: Smartphones)" required value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} />
+                  <div style={{display:'flex',flexDirection:'column',gap:'6px',gridColumn:'1/-1'}}>
+                    <label style={{fontSize:'0.85rem',color:'#a0aec0'}}>Categoría (árbol)</label>
+                    {(() => {
+                      const tree = {};
+                      products.forEach(p => {
+                        const pts = (p.category||'').split('/').map(s=>s.trim()).filter(Boolean);
+                        if(pts[0]){if(!tree[pts[0]])tree[pts[0]]={};if(pts[1]){if(!tree[pts[0]][pts[1]])tree[pts[0]][pts[1]]=new Set();if(pts[2])tree[pts[0]][pts[1]].add(pts[2]);}}
+                      });
+                      const eL1=catL1==='__new__'?newCatL1:catL1;
+                      const eL2=catL2==='__new__'?newCatL2:catL2;
+                      const eL3=catL3==='__new__'?newCatL3:catL3;
+                      const path=[eL1,eL2,eL3].filter(Boolean).join(' / ');
+                      if(newProduct.category!==path) setTimeout(()=>setNewProduct(p=>({...p,category:path})),0);
+                      const sel={background:'#12141c',border:'1px solid #272a38',color:'white',padding:'0.5rem 0.7rem',borderRadius:'8px',fontSize:'0.88rem',flex:1,cursor:'pointer'};
+                      const inp={background:'#12141c',border:'1px solid var(--accent)',color:'white',padding:'0.5rem 0.7rem',borderRadius:'8px',fontSize:'0.88rem',flex:1,outline:'none'};
+                      return <div style={{display:'flex',flexDirection:'column',gap:'5px'}}>
+                        <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+                          <select style={sel} value={catL1} onChange={e=>{setCatL1(e.target.value);setCatL2('');setCatL3('');setNewCatL1('');}}>
+                            <option value="">-- Categoría principal --</option>
+                            {Object.keys(tree).map(k=><option key={k} value={k}>{k}</option>)}
+                            <option value="__new__">+ Nueva categoría</option>
+                          </select>
+                          {catL1==='__new__'&&<input style={inp} value={newCatL1} onChange={e=>setNewCatL1(e.target.value)} placeholder="Ej: Hogar"/>}
+                        </div>
+                        {eL1&&<div style={{display:'flex',gap:'6px',alignItems:'center',paddingLeft:'14px'}}>
+                          <span style={{color:'#444',fontSize:'0.8rem'}}>▶</span>
+                          <select style={sel} value={catL2} onChange={e=>{setCatL2(e.target.value);setCatL3('');setNewCatL2('');}}>
+                            <option value="">-- Subcategoría (opcional) --</option>
+                            {tree[eL1]?Object.keys(tree[eL1]).map(k=><option key={k} value={k}>{k}</option>):null}
+                            <option value="__new__">+ Nueva</option>
+                          </select>
+                          {catL2==='__new__'&&<input style={inp} value={newCatL2} onChange={e=>setNewCatL2(e.target.value)} placeholder="Ej: Cortinas"/>}
+                        </div>}
+                        {eL1&&eL2&&<div style={{display:'flex',gap:'6px',alignItems:'center',paddingLeft:'28px'}}>
+                          <span style={{color:'#444',fontSize:'0.8rem'}}>▶</span>
+                          <select style={sel} value={catL3} onChange={e=>{setCatL3(e.target.value);setNewCatL3('');}}>
+                            <option value="">-- Sub-subcategoría (opcional) --</option>
+                            {tree[eL1]?.[eL2]?[...tree[eL1][eL2]].map(k=><option key={k} value={k}>{k}</option>):null}
+                            <option value="__new__">+ Nueva</option>
+                          </select>
+                          {catL3==='__new__'&&<input style={inp} value={newCatL3} onChange={e=>setNewCatL3(e.target.value)} placeholder="Ej: Roller Blackout"/>}
+                        </div>}
+                        {path&&<p style={{fontSize:'0.82rem',color:'var(--accent)',margin:'3px 0 0',padding:'4px 10px',background:'rgba(247,201,72,0.07)',borderRadius:'6px'}}>📂 {path}</p>}
+                      </div>;
+                    })()}
+                  </div>
                   <input type="number" placeholder="Stock Inicial" required value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: e.target.value})} />
                   
                   <div className="full-width" style={{display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
@@ -293,40 +365,33 @@ const AdminDashboard = () => {
                     />
                   </div>
                   
-                  {/* Subida de Archivo */}
-                  <div className="full-width" style={{border:'2px dashed #272a38', borderRadius:'12px', padding:'1.5rem', textAlign:'center', cursor:'pointer', position:'relative'}}>
-                    <input 
-                      type="file" 
-                      accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" 
-                      onChange={handleFileUpload}
-                      style={{position:'absolute', top:0, left:0, width:'100%', height:'100%', opacity:0, cursor:'pointer'}}
-                    />
-                    {uploadingFile ? (
-                      <p style={{color:'var(--accent)'}}>Subiendo archivo...</p>
-                    ) : uploadPreview ? (
-                      <div>
-                        {uploadType === 'video' ? (
-                          <video src={uploadPreview} style={{maxHeight:'150px', borderRadius:'8px'}} controls muted />
-                        ) : (
-                          <img src={uploadPreview} alt="Preview" style={{maxHeight:'150px', borderRadius:'8px', objectFit:'contain'}} />
-                        )}
-                        <p style={{color:'#48bb78', marginTop:'0.5rem', fontSize:'0.85rem'}}>✓ Archivo subido correctamente</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p style={{color:'#8f9ba8', marginBottom:'0.5rem'}}>📷 Arrastra o haz clic para subir</p>
-                        <p style={{color:'#555', fontSize:'0.8rem'}}>Imágenes: JPG, PNG, WEBP, GIF (máx 10MB) · Videos: MP4, WEBM (máx 50MB)</p>
-                      </div>
-                    )}
+                  <div className="full-width" style={{display:'flex',flexDirection:'column',gap:'0.7rem'}}>
+                    <label style={{fontSize:'0.9rem',color:'#a0aec0'}}>Fotos y Videos</label>
+                    <div style={{border:'2px dashed #272a38',borderRadius:'12px',padding:'1.2rem',textAlign:'center',cursor:'pointer',position:'relative',background:'#0d0f18'}}>
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple onChange={handleFileUpload} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',opacity:0,cursor:'pointer'}}/>
+                      {uploadingFile?<p style={{color:'var(--accent)',margin:0}}>Subiendo...</p>:<div><p style={{color:'#8f9ba8',marginBottom:'0.3rem',fontSize:'0.9rem'}}>Arrastra o clic para subir (selección múltiple)</p><p style={{color:'#555',fontSize:'0.78rem',margin:0}}>JPG PNG WEBP GIF MP4 WEBM</p></div>}
+                    </div>
+                    {newProduct.images.length>0&&<div style={{display:'flex',flexWrap:'wrap',gap:'8px',alignItems:'center'}}>
+                      {newProduct.images.map((media,idx)=>(
+                        <div key={idx} style={{position:'relative',borderRadius:'8px',overflow:'hidden',border:idx===0?'2px solid var(--accent)':'1px solid #272a38'}}>
+                          {idx===0&&<span style={{position:'absolute',top:2,left:2,background:'var(--accent)',color:'#000',fontSize:'9px',fontWeight:700,padding:'1px 4px',borderRadius:'4px',zIndex:1}}>PORTADA</span>}
+                          {media.type==='video'?<video src={media.url} style={{width:80,height:80,objectFit:'cover',display:'block'}} muted/>:<img src={media.url} alt="" style={{width:80,height:80,objectFit:'cover',display:'block'}}/>}
+                          <button type="button" onClick={()=>removeMedia(idx)} style={{position:'absolute',top:2,right:2,background:'rgba(0,0,0,0.75)',border:'none',borderRadius:'50%',width:18,height:18,cursor:'pointer',color:'#fff',fontSize:'11px',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>&times;</button>
+                        </div>
+                      ))}
+                      <label style={{width:80,height:80,border:'1px dashed #272a38',borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'#555',fontSize:'24px',position:'relative',flexShrink:0}}>
+                        +<input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm" multiple onChange={handleFileUpload} style={{position:'absolute',opacity:0,width:'100%',height:'100%',cursor:'pointer',top:0,left:0}}/>
+                      </label>
+                    </div>}
+                    <input type="text" placeholder="...o pega una URL de imagen externa" style={{background:'#12141c',border:'1px solid #272a38',color:'white',padding:'0.6rem 1rem',borderRadius:'8px',fontSize:'0.88rem',width:'100%',boxSizing:'border-box'}} value={newProduct.image} onChange={e=>{const u=e.target.value;setNewProduct(prev=>({...prev,image:u,images:u?[{url:u,type:'image'}]:prev.images}));}}/>
                   </div>
-
-                  <input type="url" placeholder="...o pega una URL de imagen externa" className="full-width" value={newProduct.image} onChange={e => { setNewProduct({...newProduct, image: e.target.value}); setUploadPreview(e.target.value); setUploadType('image'); }} />
                   
                   <label className="checkbox-label full-width">
                     <input type="checkbox" checked={newProduct.freeShipping} onChange={e => setNewProduct({...newProduct, freeShipping: e.target.checked})} /> Ofrecer Envío Gratis
                   </label>
                 </div>
-                <button type="submit" className="btn-primary" disabled={!newProduct.image}>Publicar Producto</button>
+                {addSuccess&&<p style={{color:'#48bb78',background:'rgba(72,187,120,0.1)',border:'1px solid rgba(72,187,120,0.3)',borderRadius:'8px',padding:'0.7rem 1rem',fontSize:'0.88rem',margin:'0'}}>{addSuccess}</p>}
+                <button type="submit" className="btn-primary" disabled={!newProduct.image&&newProduct.images.length===0}>Publicar Producto</button>
               </form>
             )}
 
@@ -542,6 +607,79 @@ const AdminDashboard = () => {
         )}
 
         {/* === TAB SAAS === */}
+        {activeTab === 'pagos' && (
+          <div className="tab-pane">
+            <header className="admin-header"><h1>Configuracion de Pagos</h1></header>
+            <p style={{color:'#a0aec0',marginBottom:'2rem'}}>Activa Mercado Pago y/o transferencia bancaria. Los clientes podran elegir al momento de pagar.</p>
+            {payConfigMsg&&<p style={{color:'#48bb78',background:'rgba(72,187,120,0.1)',border:'1px solid rgba(72,187,120,0.3)',borderRadius:'8px',padding:'0.8rem 1rem',marginBottom:'1rem'}}>{payConfigMsg}</p>}
+            <form className="admin-form full-form" onSubmit={async(e)=>{
+              e.preventDefault();
+              const t=localStorage.getItem('admin_token');
+              const res=await fetch('/api/config/payment',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify(payConfig)});
+              if(res.ok){setPayConfigMsg('Configuracion guardada');setTimeout(()=>setPayConfigMsg(''),4000);}
+              else{alert('Error al guardar');}
+            }}>
+              <div style={{background:'#12141c',border:'1px solid #272a38',borderRadius:'12px',padding:'1.5rem',marginBottom:'1.5rem'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'1rem'}}>
+                  <CreditCard size={22} color="#f7c948"/>
+                  <h3 style={{margin:0,color:'white'}}>Mercado Pago</h3>
+                  {payConfig.mp_access_token&&<span style={{background:'rgba(72,187,120,0.15)',color:'#48bb78',fontSize:'0.75rem',padding:'2px 10px',borderRadius:'20px',border:'1px solid rgba(72,187,120,0.3)'}}>Activo</span>}
+                </div>
+                <div className="form-group-admin">
+                  <label>Access Token (APP_USR-...)</label>
+                  <input type="password" placeholder="APP_USR-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" value={payConfig.mp_access_token} onChange={e=>setPayConfig({...payConfig,mp_access_token:e.target.value})} style={{fontFamily:'monospace'}}/>
+                  <small style={{color:'#718096',fontSize:'0.78rem'}}>Obtenlo en mercadopago.com.cl/developers</small>
+                </div>
+              </div>
+              <div style={{background:'#12141c',border:'1px solid #272a38',borderRadius:'12px',padding:'1.5rem'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'1rem'}}>
+                  <Building2 size={22} color="#f7c948"/>
+                  <h3 style={{margin:0,color:'white'}}>Transferencia Bancaria</h3>
+                  <label style={{display:'flex',alignItems:'center',gap:'8px',marginLeft:'auto',cursor:'pointer'}}>
+                    <input type="checkbox" checked={payConfig.transfer_enabled} onChange={e=>setPayConfig({...payConfig,transfer_enabled:e.target.checked})} style={{width:18,height:18,cursor:'pointer'}}/>
+                    <span style={{color:'#a0aec0',fontSize:'0.88rem'}}>Habilitar</span>
+                  </label>
+                </div>
+                {payConfig.transfer_enabled&&(
+                  <div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1rem'}}>
+                      <div className="form-group-admin">
+                        <label>Banco</label>
+                        <input type="text" placeholder="Ej: Banco de Chile" value={payConfig.bank_name} onChange={e=>setPayConfig({...payConfig,bank_name:e.target.value})}/>
+                      </div>
+                      <div className="form-group-admin">
+                        <label>Tipo de Cuenta</label>
+                        <input type="text" placeholder="Corriente / Vista / RUT" value={payConfig.bank_account_type} onChange={e=>setPayConfig({...payConfig,bank_account_type:e.target.value})}/>
+                      </div>
+                      <div className="form-group-admin">
+                        <label>Numero de Cuenta</label>
+                        <input type="text" placeholder="0001234567" value={payConfig.bank_account_number} onChange={e=>setPayConfig({...payConfig,bank_account_number:e.target.value})}/>
+                      </div>
+                      <div className="form-group-admin">
+                        <label>Titular</label>
+                        <input type="text" placeholder="Nombre completo" value={payConfig.bank_holder_name} onChange={e=>setPayConfig({...payConfig,bank_holder_name:e.target.value})}/>
+                      </div>
+                      <div className="form-group-admin">
+                        <label>RUT del Titular</label>
+                        <input type="text" placeholder="12.345.678-9" value={payConfig.bank_holder_rut} onChange={e=>setPayConfig({...payConfig,bank_holder_rut:e.target.value})}/>
+                      </div>
+                      <div className="form-group-admin">
+                        <label>Email de Confirmacion</label>
+                        <input type="email" placeholder="pagos@tutienda.cl" value={payConfig.bank_email} onChange={e=>setPayConfig({...payConfig,bank_email:e.target.value})}/>
+                      </div>
+                    </div>
+                    <div className="form-group-admin" style={{marginTop:'1rem'}}>
+                      <label>Instrucciones adicionales (opcional)</label>
+                      <textarea rows="2" placeholder="Ej: Incluir el numero de pedido en la descripcion de la transferencia." value={payConfig.transfer_instructions} onChange={e=>setPayConfig({...payConfig,transfer_instructions:e.target.value})}/>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button type="submit" className="btn-primary" style={{marginTop:'2rem'}}>Guardar Configuracion de Pagos</button>
+            </form>
+          </div>
+        )}
+
         {activeTab === 'saas' && saasConfig && (
           <div className="tab-pane">
             <header className="admin-header"><h1>Configuración de la Tienda</h1></header>

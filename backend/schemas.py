@@ -27,6 +27,7 @@ class ProductBase(BaseModel):
     stock: int
     freeShipping: bool = False
     description: Optional[str] = None
+    images: Optional[str] = None  # JSON-encoded list of URLs
 
 class ProductCreate(ProductBase):
     pass
@@ -140,3 +141,38 @@ class SaasConfigResponse(SaasConfigBase):
     id: int
     class Config:
         from_attributes = True
+
+
+# --- PAGOS CONFIG ---
+class PaymentConfigUpdate(BaseModel):
+    mp_access_token: Optional[str] = None
+    transfer_enabled: bool = False
+    bank_name: Optional[str] = None
+    bank_account_type: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    bank_holder_name: Optional[str] = None
+    bank_holder_rut: Optional[str] = None
+    bank_email: Optional[str] = None
+    transfer_instructions: Optional[str] = None
+
+class PaymentConfigPublic(BaseModel):
+    transfer_enabled: bool = False
+    bank_name: Optional[str] = None
+    bank_account_type: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    bank_holder_name: Optional[str] = None
+    bank_holder_rut: Optional[str] = None
+    bank_email: Optional[str] = None
+    transfer_instructions: Optional[str] = None
+    mp_enabled: bool = False
+    class Config:
+        from_attributes = True
+
+class TransferOrderCreate(BaseModel):
+    id: str
+    customer: str
+    document: str
+    email: str
+    phone: str
+    amount: float
+    items: List[dict] = []

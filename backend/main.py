@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -315,11 +316,22 @@ async def seed_demo_products(db):
 # ==== INVENTARIO (ADMIN PROTEGIDO) ====
 @app.post("/api/products", response_model=schemas.ProductResponse)
 async def create_product(product: schemas.ProductCreate, db: AsyncSession = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
-    new_product = models.Product(**product.dict())
+    data = product.dict()
+    # If images array is provided, use first as main image
+    if data.get('images'):
+        try:
+            import json as _json
+            imgs = _json.loads(data['images']) if isinstance(data['images'], str) else data['images']
+            if imgs and not data.get('image'):
+                data['image'] = imgs[0]
+        except Exception:
+            pass
+    new_product = models.Product(**data)
     db.add(new_product)
     await db.commit()
     await db.refresh(new_product)
-    return new_product
+    result = await db.execute(select(models.Product).options(selectinload(models.Product.reviews)).filter(models.Product.id == new_product.id))
+    return result.scalars().first()
 
 @app.put("/api/products/{id}", response_model=schemas.ProductResponse)
 async def update_product(id: int, product_update: schemas.ProductCreate, db: AsyncSession = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
@@ -403,11 +415,63 @@ async def create_review(id: int, review: schemas.ReviewBase, db: AsyncSession = 
     await db.refresh(new_review)
     return new_review
 
+# ==== PAGOS CONFIG (ADMIN) ====
+@app.get("/api/config/payment")
+async def get_payment_config(db: AsyncSession = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
+    result = await db.execute(select(models.SaasConfig))
+    config = result.scalars().first()
+    if not config:
+        return {"mp_enabled": False, "transfer_enabled": False, "mp_access_token": ""}
+    return {"mp_enabled": bool(config.mp_access_token), "mp_access_token": config.mp_access_token or "", "transfer_enabled": config.transfer_enabled or False, "bank_name": config.bank_name or "", "bank_account_type": config.bank_account_type or "", "bank_account_number": config.bank_account_number or "", "bank_holder_name": config.bank_holder_name or "", "bank_holder_rut": config.bank_holder_rut or "", "bank_email": config.bank_email or "", "transfer_instructions": config.transfer_instructions or ""}
+
+@app.put("/api/config/payment")
+async def update_payment_config(data: schemas.PaymentConfigUpdate, db: AsyncSession = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
+    global sdk
+    result = await db.execute(select(models.SaasConfig))
+    config = result.scalars().first()
+    if not config:
+        config = models.SaasConfig()
+        db.add(config)
+    for field, value in data.dict().items():
+        if hasattr(config, field):
+            setattr(config, field, value)
+    await db.commit()
+    if data.mp_access_token:
+        sdk = mercadopago.SDK(data.mp_access_token)
+    return {"ok": True}
+
+@app.get("/api/config/payment-public")
+async def get_payment_config_public(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.SaasConfig))
+    config = result.scalars().first()
+    if not config:
+        return {"mp_enabled": False, "transfer_enabled": False}
+    return {"mp_enabled": bool(config.mp_access_token or MP_ACCESS_TOKEN), "transfer_enabled": config.transfer_enabled or False, "bank_name": config.bank_name or "", "bank_account_type": config.bank_account_type or "", "bank_account_number": config.bank_account_number or "", "bank_holder_name": config.bank_holder_name or "", "bank_holder_rut": config.bank_holder_rut or "", "bank_email": config.bank_email or "", "transfer_instructions": config.transfer_instructions or ""}
+
+@app.post("/api/payments/transfer")
+async def create_transfer_order(order_data: schemas.TransferOrderCreate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.SaasConfig))
+    config = result.scalars().first()
+    if not config or not config.transfer_enabled:
+        raise HTTPException(status_code=503, detail="Transferencia bancaria no habilitada.")
+    date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_order = models.Order(id=order_data.id, date=date_str, customer=order_data.customer, document=order_data.document, email=order_data.email, phone=order_data.phone, amount=order_data.amount, status="Pendiente - Transferencia", items_json=json.dumps(order_data.items))
+    db.add(new_order)
+    await db.commit()
+    bank = {"bank_name": config.bank_name or "", "bank_account_type": config.bank_account_type or "", "bank_account_number": config.bank_account_number or "", "bank_holder_name": config.bank_holder_name or "", "bank_holder_rut": config.bank_holder_rut or "", "bank_email": config.bank_email or "", "transfer_instructions": config.transfer_instructions or ""}
+    await email_service.notify_transfer_instructions(to_email=order_data.email, client_name=order_data.customer, order_id=order_data.id, amount=order_data.amount, bank=bank)
+    await email_service.notify_admin_transfer_order(order_id=order_data.id, customer=order_data.customer, email_cliente=order_data.email, phone=order_data.phone, amount=order_data.amount)
+    return {"ok": True, "order_id": order_data.id, "bank": bank}
+
 # ==== PAGOS (MERCADO PAGO) ====
 @app.post("/api/payments/create_preference")
 async def create_preference(order_data: schemas.OrderCreate, db: AsyncSession = Depends(get_db)):
-    if not sdk:
-        raise HTTPException(status_code=503, detail="Pagos no configurados. Contacta al administrador.")
+    result = await db.execute(select(models.SaasConfig))
+    config = result.scalars().first()
+    active_token = (config.mp_access_token if config and config.mp_access_token else MP_ACCESS_TOKEN)
+    active_sdk = mercadopago.SDK(active_token) if active_token else None
+    if not active_sdk:
+        raise HTTPException(status_code=503, detail="Pagos no configurados. Configura tu token de Mercado Pago en el panel Admin.")
 
     # 1. Crear la preferencia en Mercado Pago
     preference_data = {
@@ -429,7 +493,7 @@ async def create_preference(order_data: schemas.OrderCreate, db: AsyncSession = 
         "external_reference": order_data.id,
     }
 
-    preference_response = sdk.preference().create(preference_data)
+    preference_response = active_sdk.preference().create(preference_data)
     preference = preference_response["response"]
 
     # 2. Guardar orden en DB como Pendiente
@@ -671,6 +735,24 @@ async def upload_media(file: UploadFile = File(...)):
     print(f"📸 [Upload] Archivo '{file.filename}' ({file_size/1024:.0f}KB) guardado como {unique_name}")
     
     return {"url": file_url, "filename": unique_name, "type": file_type, "size_kb": round(file_size / 1024)}
+
+
+# ==== VISIT COUNTER ====
+@app.post("/api/visits")
+async def track_visit(db: AsyncSession = Depends(database.get_db)):
+    result = await db.execute(select(models.SaasConfig))
+    config = result.scalars().first()
+    if config:
+        config.page_visits = (config.page_visits or 0) + 1
+        await db.commit()
+        return {"visits": config.page_visits}
+    return {"visits": 0}
+
+@app.get("/api/visits")
+async def get_visits(db: AsyncSession = Depends(database.get_db)):
+    result = await db.execute(select(models.SaasConfig))
+    config = result.scalars().first()
+    return {"visits": config.page_visits if config else 0}
 
 # ==== SAAS & LANDING CONFIG ====
 @app.get("/api/landing", response_model=schemas.SaasConfigResponse)

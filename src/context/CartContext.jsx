@@ -171,9 +171,17 @@ export const CartProvider = ({ children }) => {
         const product = await res.json();
         setProducts(prev => [product, ...prev]);
         return product;
+      } else if(res.status === 401) {
+        alert('Sesión expirada. Por favor vuelve a iniciar sesión.');
+        localStorage.removeItem('admin_token');
+        window.location.reload();
+      } else {
+        const err = await res.json().catch(()=>({}));
+        alert('Error al publicar: ' + (err.detail || res.status));
       }
     } catch (err) {
       console.error("Error al guardar producto:", err);
+      alert('Error de conexión al publicar producto');
     }
   };
 

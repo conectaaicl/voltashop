@@ -92,3 +92,58 @@ async def notify_admin_new_sale(client_name: str, client_email: str, client_phon
             "total": f"${amount:,.0f}",
         },
     )
+
+async def notify_transfer_instructions(to_email: str, client_name: str, order_id: str, amount: float, bank: dict):
+    bank_info = (
+        f"Banco: {bank.get('bank_name','')}<br>"
+        f"Tipo: {bank.get('bank_account_type','')}<br>"
+        f"N cuenta: {bank.get('bank_account_number','')}<br>"
+        f"Titular: {bank.get('bank_holder_name','')}<br>"
+        f"RUT: {bank.get('bank_holder_rut','')}<br>"
+        f"Email confirmacion: {bank.get('bank_email','')}"
+    )
+    notes = bank.get("transfer_instructions") or "Envia el comprobante al email indicado para confirmar tu pedido."
+    payload = {
+        "to": to_email,
+        "subject": f"Instrucciones de Transferencia - Pedido {order_id}",
+        "html": f"<div style='font-family:sans-serif;max-width:600px;margin:auto;padding:20px'><h2 style='color:#f7c948'>Pedido recibido - Completa tu pago por transferencia</h2><p>Hola <strong>{client_name}</strong>, gracias por tu compra.</p><p>Para confirmar el pedido <strong>{order_id}</strong> por <strong></strong>, realiza una transferencia con estos datos:</p><div style='background:#f9f9f9;border-left:4px solid #f7c948;padding:16px;margin:16px 0;border-radius:8px'>{bank_info}</div><p style='background:#fff3cd;padding:12px;border-radius:8px'>{notes}</p></div>",
+    }
+    headers = {"Authorization": f"Bearer {CONECTAAI_API_KEY}", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(CONECTAAI_API_URL, json=payload, headers=headers)
+        print(f"[email] transfer -> {to_email}: {resp.status_code}", flush=True)
+        return resp.status_code < 400
+    except Exception as e:
+        print(f"[email] transfer error: {e}", flush=True)
+        return False
+
+async def notify_payment_failed(order_id: str, customer: str, email_cliente: str, amount: float, error_msg: str):
+    payload = {
+        "to": ADMIN_EMAIL,
+        "subject": f"Fallo de pago - Pedido {order_id}",
+        "html": f"<div style='font-family:sans-serif;padding:20px'><h2 style='color:#e53e3e'>Fallo en pago con tarjeta</h2><p><b>Pedido:</b> {order_id}</p><p><b>Cliente:</b> {customer} ({email_cliente})</p><p><b>Monto:</b> </p><p><b>Error:</b> {error_msg}</p></div>",
+    }
+    headers = {"Authorization": f"Bearer {CONECTAAI_API_KEY}", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(CONECTAAI_API_URL, json=payload, headers=headers)
+        return resp.status_code < 400
+    except Exception as e:
+        print(f"[email] payment_failed error: {e}", flush=True)
+        return False
+
+async def notify_admin_transfer_order(order_id: str, customer: str, email_cliente: str, phone: str, amount: float):
+    payload = {
+        "to": ADMIN_EMAIL,
+        "subject": f"Nueva orden por transferencia - {order_id}",
+        "html": f"<div style='font-family:sans-serif;padding:20px'><h2 style='color:#f7c948'>Nueva orden pendiente de transferencia</h2><p><b>Pedido:</b> {order_id}</p><p><b>Cliente:</b> {customer}</p><p><b>Email:</b> {email_cliente}</p><p><b>Telefono:</b> {phone}</p><p><b>Monto:</b> </p><p style='background:#fff3cd;padding:10px;border-radius:6px'>Cuando recibas la transferencia, marca el pedido como Pagado en el panel de administracion.</p></div>",
+    }
+    headers = {"Authorization": f"Bearer {CONECTAAI_API_KEY}", "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(CONECTAAI_API_URL, json=payload, headers=headers)
+        return resp.status_code < 400
+    except Exception as e:
+        print(f"[email] admin_transfer error: {e}", flush=True)
+        return False

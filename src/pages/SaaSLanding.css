@@ -325,3 +325,35 @@
     color: var(--saas-accent);
     background: var(--saas-primary);
 }
+
+/* Visit counter badge */
+.visit-counter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 8px 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50px;
+  font-size: 0.85rem;
+  color: #a0aec0;
+  backdrop-filter: blur(8px);
+}
+.visit-counter-badge strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+.visit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse-dot 2s infinite;
+  flex-shrink: 0;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
